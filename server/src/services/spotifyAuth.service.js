@@ -5,6 +5,7 @@ const TOKEN_URL = 'https://accounts.spotify.com/api/token';
 const AUTH_URL = 'https://accounts.spotify.com/authorize';
 export const SPOTIFY_SCOPES = [
   'user-top-read',
+  'user-read-recently-played',
   'playlist-modify-public',
   'playlist-modify-private',
 ];
