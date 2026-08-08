@@ -27,6 +27,7 @@ function normalizeTrack(track) {
     id: track.id,
     name: track.name,
     artists: track.artists.map((artist) => artist.name),
+    albumName: track.album.name,
     albumImageUrl: track.album.images[0]?.url ?? null,
     spotifyUrl: track.external_urls.spotify,
   };
@@ -41,4 +42,14 @@ export async function fetchTopTracksAcrossRanges(accessToken, limit = 20) {
     }),
   );
   return Object.fromEntries(entries);
+}
+
+export async function fetchRecentlyPlayed(accessToken, limit = 20) {
+  const query = new URLSearchParams({ limit: String(limit) });
+  const data = await spotifyGet(`/me/player/recently-played?${query}`, accessToken);
+
+  return data.items.map((item) => ({
+    ...normalizeTrack(item.track),
+    playedAt: item.played_at,
+  }));
 }

@@ -17,4 +17,5 @@ async function apiFetch(path, options = {}) {
 export const loginUrl = `${API_URL}/api/auth/login`;
 export const getAuthStatus = () => apiFetch('/api/auth/status');
 export const getTopTracks = () => apiFetch('/api/top-tracks?limit=20');
+export const getRecentlyPlayed = () => apiFetch('/api/recently-played?limit=20');
 export const logout = () => apiFetch('/api/auth/logout', { method: 'POST' });
