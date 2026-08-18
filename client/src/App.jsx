@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
+
 import {
   getAuthStatus,
   getRecentlyPlayed,
   getTopTracks,
   loginUrl,
   logout,
+  searchSpotify,
 } from './api.js';
+
 import './styles.css';
 
-// Show the date and time a song was played.
+// format date and time
 function formatPlayedAt(playedAt) {
   const date = new Date(playedAt);
 
@@ -16,25 +19,23 @@ function formatPlayedAt(playedAt) {
 }
 
 export default function App() {
-  // Keep track of whether the user is connected to Spotify.
+  // app information
   const [authenticated, setAuthenticated] = useState(false);
-
-  // Show when the app is loading.
   const [loading, setLoading] = useState(true);
-
-  // Show updates or error messages.
   const [message, setMessage] = useState('');
-
-  // Save the number of songs in each listening range.
-  const [counts, setCounts] = useState(null);
-
-  // Save the user's recently played songs.
-  const [recentTracks, setRecentTracks] = useState(null);
-
-  // Keep track of the page the user is viewing.
   const [activePage, setActivePage] = useState('search');
 
-  // Check whether the user is already connected when the app opens.
+  // listening history
+  const [counts, setCounts] = useState(null);
+  const [recentTracks, setRecentTracks] = useState(null);
+
+  // search information
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState('artist');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+
+  // check spotify connection
   useEffect(() => {
     async function checkAuthStatus() {
       try {
@@ -51,14 +52,13 @@ export default function App() {
     checkAuthStatus();
   }, []);
 
-  // Get the user's top songs for each listening range.
+  // load top tracks
   async function loadTopTracks() {
     setLoading(true);
     setMessage('');
 
     try {
       const result = await getTopTracks();
-
       const trackCounts = [];
 
       for (const range in result.data) {
@@ -71,7 +71,7 @@ export default function App() {
       }
 
       setCounts(trackCounts);
-      setMessage('Your top tracks were loaded successfully.');
+      setMessage('Your top tracks were loaded.');
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -79,7 +79,7 @@ export default function App() {
     }
   }
 
-  // Get the user's recently played songs.
+  // load recently played
   async function loadRecentlyPlayed() {
     setLoading(true);
     setMessage('');
@@ -101,7 +101,38 @@ export default function App() {
     }
   }
 
-  // Disconnect Spotify and clear the saved information.
+  // search spotify
+  async function handleSearch(event) {
+    event.preventDefault();
+
+    if (!searchTerm.trim()) {
+      setMessage('Please enter something to search.');
+      return;
+    }
+
+    setSearchLoading(true);
+    setSearchResults([]);
+    setMessage('');
+
+    try {
+      const result = await searchSpotify(
+        searchTerm.trim(),
+        searchType
+      );
+
+      setSearchResults(result.data);
+
+      if (result.data.length === 0) {
+        setMessage('No results found.');
+      }
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setSearchLoading(false);
+    }
+  }
+
+  // disconnect spotify
   async function disconnect() {
     try {
       await logout();
@@ -109,6 +140,8 @@ export default function App() {
       setAuthenticated(false);
       setCounts(null);
       setRecentTracks(null);
+      setSearchResults([]);
+      setSearchTerm('');
       setActivePage('search');
       setMessage('Spotify disconnected.');
     } catch (error) {
@@ -138,7 +171,9 @@ export default function App() {
         <div>
           <nav className="navigation">
             <button
-              className={activePage === 'search' ? 'active-page' : 'secondary'}
+              className={
+                activePage === 'search' ? 'active-page' : 'secondary'
+              }
               onClick={() => setActivePage('search')}
             >
               Search
@@ -163,21 +198,79 @@ export default function App() {
             </button>
           </nav>
 
-          {/* Show the search section. */}
           {activePage === 'search' && (
             <section className="page-section">
               <h2>Search Spotify</h2>
 
-              <p>Search for your favorite artists, albums, and songs.</p>
+              <p>
+                Search for your favorite artists, albums, and songs.
+              </p>
+
+              <form className="search-form" onSubmit={handleSearch}>
+                <input
+                  className="search-input"
+                  type="text"
+                  placeholder="Search Spotify"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                />
+
+                <select
+                  className="search-select"
+                  value={searchType}
+                  onChange={(event) => setSearchType(event.target.value)}
+                >
+                  <option value="artist">Artists</option>
+                  <option value="album">Albums</option>
+                  <option value="track">Tracks</option>
+                </select>
+
+                <button type="submit" disabled={searchLoading}>
+                  {searchLoading ? 'Searching...' : 'Search'}
+                </button>
+              </form>
+
+              {searchResults.length > 0 && (
+                <div className="search-results">
+                  {searchResults.map((item) => (
+                    <div className="search-card" key={item.id}>
+                      {item.image && (
+                        <img src={item.image} alt={item.name} />
+                      )}
+
+                      <div className="search-details">
+                        <h3>{item.name}</h3>
+
+                        {item.artists.length > 0 && (
+                          <p>{item.artists.join(', ')}</p>
+                        )}
+
+                        {item.albumName && (
+                          <p>{item.albumName}</p>
+                        )}
+
+                        <a
+                          href={item.spotifyUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Open in Spotify
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
           )}
 
-      
           {activePage === 'chronicle' && (
             <section className="page-section">
               <h2>Your Chronicle</h2>
 
-              <p>Explore your top songs and recently played music.</p>
+              <p>
+                Explore your top songs and recently played music.
+              </p>
 
               <div className="actions">
                 <button onClick={loadTopTracks}>
@@ -261,7 +354,10 @@ export default function App() {
             </section>
           )}
 
-          <button className="secondary disconnect-button" onClick={disconnect}>
+          <button
+            className="secondary disconnect-button"
+            onClick={disconnect}
+          >
             Disconnect Spotify
           </button>
         </div>

@@ -16,6 +16,7 @@ body {
 main {
   width: 90%;
   max-width: 680px;
+  padding: 40px 0;
 }
 
 /* headings */
@@ -57,6 +58,11 @@ button.secondary {
   color: #ffffff;
 }
 
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .actions {
   display: flex;
   gap: 12px;
@@ -82,6 +88,71 @@ button.secondary {
 
 .disconnect-button {
   margin-top: 20px;
+}
+
+/* search form */
+.search-form {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.search-input,
+.search-select {
+  padding: 12px;
+  border: 1px solid #29302c;
+  border-radius: 8px;
+  background: #151816;
+  color: #ffffff;
+  font: inherit;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 180px;
+}
+
+/* search results */
+.search-results {
+  display: grid;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.search-card {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 14px;
+  background: #151816;
+  border: 1px solid #29302c;
+  border-radius: 12px;
+}
+
+.search-card img {
+  width: 70px;
+  height: 70px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.search-details h3 {
+  margin: 0 0 6px;
+}
+
+.search-details p {
+  margin: 4px 0;
+  color: #aeb7b2;
+}
+
+.search-details a {
+  color: #1ed760;
+  text-decoration: none;
+}
+
+.search-details a:hover {
+  text-decoration: underline;
 }
 
 /* track counts */
@@ -179,5 +250,15 @@ button.secondary {
 
   .navigation button {
     padding: 12px 14px;
+  }
+
+  .search-form {
+    flex-direction: column;
+  }
+
+  .search-input,
+  .search-select {
+    width: 100%;
+    box-sizing: border-box;
   }
 }

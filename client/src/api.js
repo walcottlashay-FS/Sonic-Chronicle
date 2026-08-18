@@ -1,21 +1,75 @@
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:3000';
+// backend server address
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000';
 
+// send requests to the backend
 async function apiFetch(path, options = {}) {
   let response;
+
+  // include the spotify login session
+  options.credentials = 'include';
+
   try {
-    response = await fetch(`${API_URL}${path}`, { credentials: 'include', ...options });
+    response = await fetch(`${API_URL}${path}`, options);
   } catch (error) {
-    throw new Error('The Sonic Chronicle server is unavailable. Is it running?', { cause: error });
+    throw new Error('Could not connect to the server.');
   }
+
+  // check for request errors
   if (!response.ok) {
-    const payload = await response.json().catch(() => ({}));
-    throw new Error(payload.message ?? `Request failed with status ${response.status}`);
+    let errorMessage = 'Something went wrong.';
+
+    try {
+      const result = await response.json();
+
+      if (result.message) {
+        errorMessage = result.message;
+      }
+    } catch (error) {
+      errorMessage = 'Could not read the server response.';
+    }
+
+    throw new Error(errorMessage);
   }
-  return response.status === 204 ? null : response.json();
+
+  // return nothing if the request has no content
+  if (response.status === 204) {
+    return null;
+  }
+
+  return response.json();
 }
 
+// spotify login link
 export const loginUrl = `${API_URL}/api/auth/login`;
-export const getAuthStatus = () => apiFetch('/api/auth/status');
-export const getTopTracks = () => apiFetch('/api/top-tracks?limit=20');
-export const getRecentlyPlayed = () => apiFetch('/api/recently-played?limit=20');
-export const logout = () => apiFetch('/api/auth/logout', { method: 'POST' });
+
+// check login status
+export function getAuthStatus() {
+  return apiFetch('/api/auth/status');
+}
+
+// get top tracks
+export function getTopTracks() {
+  return apiFetch('/api/top-tracks?limit=20');
+}
+
+// get recently played tracks
+export function getRecentlyPlayed() {
+  return apiFetch('/api/recently-played?limit=20');
+}
+
+// disconnect spotify
+export function logout() {
+  return apiFetch('/api/auth/logout', {
+    method: 'POST',
+  });
+}
+
+// search spotify
+export function searchSpotify(searchTerm, searchType) {
+  const query = new URLSearchParams({
+    q: searchTerm,
+    type: searchType,
+  });
+
+  return apiFetch(`/api/search?${query}`);
+}
