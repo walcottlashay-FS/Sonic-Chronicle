@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 import {
   getAuthStatus,
@@ -7,9 +7,9 @@ import {
   loginUrl,
   logout,
   searchSpotify,
-} from './api.js';
+} from "./api.js";
 
-import './styles.css';
+import "./styles.css";
 
 // format date and time
 function formatPlayedAt(playedAt) {
@@ -18,20 +18,36 @@ function formatPlayedAt(playedAt) {
   return date.toLocaleString();
 }
 
+// make range names easier to read
+function formatRangeName(range) {
+  if (range === "short_term") {
+    return "Last 4 Weeks";
+  }
+
+  if (range === "medium_term") {
+    return "Last 6 Months";
+  }
+
+  return "All Time";
+}
+
 export default function App() {
   // app information
   const [authenticated, setAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('');
-  const [activePage, setActivePage] = useState('search');
+  const [message, setMessage] = useState("");
+  const [activePage, setActivePage] = useState("search");
 
   // listening history
-  const [counts, setCounts] = useState(null);
+  const [topTracks, setTopTracks] = useState(null);
+  const [selectedRange, setSelectedRange] = useState("short_term");
+  const [selectedTrack, setSelectedTrack] = useState(null);
   const [recentTracks, setRecentTracks] = useState(null);
-
+  const [timelineLoading, setTimelineLoading] = useState(false);
+  const [recentLoading, setRecentLoading] = useState(false);
   // search information
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchType, setSearchType] = useState('artist');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchType, setSearchType] = useState("artist");
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
 
@@ -54,35 +70,38 @@ export default function App() {
 
   // load top tracks
   async function loadTopTracks() {
-    setLoading(true);
-    setMessage('');
+    setTimelineLoading(true);
+    setMessage("");
+    setSelectedTrack(null);
 
     try {
       const result = await getTopTracks();
-      const trackCounts = [];
 
-      for (const range in result.data) {
-        const tracks = result.data[range];
-
-        trackCounts.push({
-          range: range,
-          count: tracks.length,
-        });
-      }
-
-      setCounts(trackCounts);
-      setMessage('Your top tracks were loaded.');
+      setTopTracks(result.data);
+      setSelectedRange("short_term");
+      setMessage("Your listening timeline was loaded.");
     } catch (error) {
       setMessage(error.message);
     } finally {
-      setLoading(false);
+      setTimelineLoading(false);
     }
+  }
+
+  // change listening range
+  function changeListeningRange(range) {
+    setSelectedRange(range);
+    setSelectedTrack(null);
+  }
+
+  // select a track
+  function showTrackDetails(track) {
+    setSelectedTrack(track);
   }
 
   // load recently played
   async function loadRecentlyPlayed() {
-    setLoading(true);
-    setMessage('');
+    setRecentLoading(true);
+    setMessage("");
 
     try {
       const result = await getRecentlyPlayed();
@@ -90,40 +109,36 @@ export default function App() {
       setRecentTracks(result.data);
 
       if (result.data.length > 0) {
-        setMessage('Your recently played songs were loaded.');
+        setMessage("Your recently played songs were loaded.");
       } else {
-        setMessage('No recently played songs were found.');
+        setMessage("No recently played songs were found.");
       }
     } catch (error) {
       setMessage(error.message);
     } finally {
-      setLoading(false);
+      setRecentLoading(false);
     }
   }
-
   // search spotify
   async function handleSearch(event) {
     event.preventDefault();
 
     if (!searchTerm.trim()) {
-      setMessage('Please enter something to search.');
+      setMessage("Please enter something to search.");
       return;
     }
 
     setSearchLoading(true);
     setSearchResults([]);
-    setMessage('');
+    setMessage("");
 
     try {
-      const result = await searchSpotify(
-        searchTerm.trim(),
-        searchType
-      );
+      const result = await searchSpotify(searchTerm.trim(), searchType);
 
       setSearchResults(result.data);
 
       if (result.data.length === 0) {
-        setMessage('No results found.');
+        setMessage("No results found.");
       }
     } catch (error) {
       setMessage(error.message);
@@ -138,15 +153,23 @@ export default function App() {
       await logout();
 
       setAuthenticated(false);
-      setCounts(null);
+      setTopTracks(null);
       setRecentTracks(null);
+      setSelectedTrack(null);
+      setSelectedRange("short_term");
       setSearchResults([]);
-      setSearchTerm('');
-      setActivePage('search');
-      setMessage('Spotify disconnected.');
+      setSearchTerm("");
+      setActivePage("search");
+      setMessage("Spotify disconnected.");
     } catch (error) {
       setMessage(error.message);
     }
+  }
+
+  let selectedTracks = [];
+
+  if (topTracks && topTracks[selectedRange]) {
+    selectedTracks = topTracks[selectedRange];
   }
 
   return (
@@ -171,40 +194,36 @@ export default function App() {
         <div>
           <nav className="navigation">
             <button
-              className={
-                activePage === 'search' ? 'active-page' : 'secondary'
-              }
-              onClick={() => setActivePage('search')}
+              className={activePage === "search" ? "active-page" : "secondary"}
+              onClick={() => setActivePage("search")}
             >
               Search
             </button>
 
             <button
               className={
-                activePage === 'chronicle' ? 'active-page' : 'secondary'
+                activePage === "chronicle" ? "active-page" : "secondary"
               }
-              onClick={() => setActivePage('chronicle')}
+              onClick={() => setActivePage("chronicle")}
             >
               Chronicle
             </button>
 
             <button
               className={
-                activePage === 'playlist' ? 'active-page' : 'secondary'
+                activePage === "playlist" ? "active-page" : "secondary"
               }
-              onClick={() => setActivePage('playlist')}
+              onClick={() => setActivePage("playlist")}
             >
               Build Playlist
             </button>
           </nav>
 
-          {activePage === 'search' && (
+          {activePage === "search" && (
             <section className="page-section">
               <h2>Search Spotify</h2>
 
-              <p>
-                Search for your favorite artists, albums, and songs.
-              </p>
+              <p>Search for your favorite artists, albums, and songs.</p>
 
               <form className="search-form" onSubmit={handleSearch}>
                 <input
@@ -226,7 +245,7 @@ export default function App() {
                 </select>
 
                 <button type="submit" disabled={searchLoading}>
-                  {searchLoading ? 'Searching...' : 'Search'}
+                  {searchLoading ? "Searching..." : "Search"}
                 </button>
               </form>
 
@@ -234,20 +253,16 @@ export default function App() {
                 <div className="search-results">
                   {searchResults.map((item) => (
                     <div className="search-card" key={item.id}>
-                      {item.image && (
-                        <img src={item.image} alt={item.name} />
-                      )}
+                      {item.image && <img src={item.image} alt={item.name} />}
 
                       <div className="search-details">
                         <h3>{item.name}</h3>
 
                         {item.artists.length > 0 && (
-                          <p>{item.artists.join(', ')}</p>
+                          <p>{item.artists.join(", ")}</p>
                         )}
 
-                        {item.albumName && (
-                          <p>{item.albumName}</p>
-                        )}
+                        {item.albumName && <p>{item.albumName}</p>}
 
                         <a
                           href={item.spotifyUrl}
@@ -264,32 +279,125 @@ export default function App() {
             </section>
           )}
 
-          {activePage === 'chronicle' && (
+          {activePage === "chronicle" && (
             <section className="page-section">
               <h2>Your Chronicle</h2>
 
-              <p>
-                Explore your top songs and recently played music.
-              </p>
+              <p>Explore how your listening has changed over time.</p>
 
               <div className="actions">
-                <button onClick={loadTopTracks}>
-                  Load Top Tracks
+                <button onClick={loadTopTracks} disabled={timelineLoading}>
+                  {timelineLoading
+                    ? "Loading Timeline..."
+                    : "Load Listening Timeline"}
                 </button>
 
-                <button onClick={loadRecentlyPlayed}>
-                  Load Recently Played
+                <button onClick={loadRecentlyPlayed} disabled={recentLoading}>
+                  {recentLoading ? "Loading Tracks..." : "Load Recently Played"}
                 </button>
               </div>
+              {topTracks && (
+                <div className="timeline-section">
+                  <h3>{formatRangeName(selectedRange)}</h3>
 
-              {counts && (
-                <ul className="count-list">
-                  {counts.map((item) => (
-                    <li key={item.range}>
-                      <strong>{item.range}</strong>: {item.count} tracks
-                    </li>
-                  ))}
-                </ul>
+                  <div className="range-buttons">
+                    <button
+                      className={
+                        selectedRange === "short_term"
+                          ? "active-range"
+                          : "secondary"
+                      }
+                      onClick={() => changeListeningRange("short_term")}
+                    >
+                      Last 4 Weeks
+                    </button>
+
+                    <button
+                      className={
+                        selectedRange === "medium_term"
+                          ? "active-range"
+                          : "secondary"
+                      }
+                      onClick={() => changeListeningRange("medium_term")}
+                    >
+                      Last 6 Months
+                    </button>
+
+                    <button
+                      className={
+                        selectedRange === "long_term"
+                          ? "active-range"
+                          : "secondary"
+                      }
+                      onClick={() => changeListeningRange("long_term")}
+                    >
+                      All Time
+                    </button>
+                  </div>
+
+                  {selectedTracks.length === 0 && (
+                    <p className="empty-state">
+                      No top tracks were found for this listening period.
+                    </p>
+                  )}
+
+                  {selectedTracks.length > 0 && (
+                    <ol className="timeline-list">
+                      {selectedTracks.map((track, index) => (
+                        <li key={track.id}>
+                          <button
+                            className="timeline-card"
+                            onClick={() => showTrackDetails(track)}
+                          >
+                            <span className="track-number">{index + 1}</span>
+
+                            {track.albumImageUrl && (
+                              <img
+                                src={track.albumImageUrl}
+                                alt={track.albumName}
+                              />
+                            )}
+
+                            <span className="timeline-details">
+                              <strong>{track.name}</strong>
+
+                              <span>{track.artists.join(", ")}</span>
+
+                              <span>{track.albumName}</span>
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+
+                  {selectedTrack && (
+                    <div className="selected-track">
+                      <h3>Track Details</h3>
+
+                      {selectedTrack.albumImageUrl && (
+                        <img
+                          src={selectedTrack.albumImageUrl}
+                          alt={selectedTrack.albumName}
+                        />
+                      )}
+
+                      <h4>{selectedTrack.name}</h4>
+
+                      <p>Artist: {selectedTrack.artists.join(", ")}</p>
+
+                      <p>Album: {selectedTrack.albumName}</p>
+
+                      <a
+                        href={selectedTrack.spotifyUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Open in Spotify
+                      </a>
+                    </div>
+                  )}
+                </div>
               )}
 
               {recentTracks && (
@@ -309,9 +417,7 @@ export default function App() {
                           key={`${track.id}-${track.playedAt}`}
                           className="track-card"
                         >
-                          <span className="track-number">
-                            {index + 1}
-                          </span>
+                          <span className="track-number">{index + 1}</span>
 
                           {track.albumImageUrl && (
                             <img
@@ -330,7 +436,7 @@ export default function App() {
                             </a>
 
                             <span>
-                              {track.artists.join(', ')} · {track.albumName}
+                              {track.artists.join(", ")} · {track.albumName}
                             </span>
 
                             <time dateTime={track.playedAt}>
@@ -346,7 +452,7 @@ export default function App() {
             </section>
           )}
 
-          {activePage === 'playlist' && (
+          {activePage === "playlist" && (
             <section className="page-section">
               <h2>Build a Playlist</h2>
 
@@ -354,10 +460,7 @@ export default function App() {
             </section>
           )}
 
-          <button
-            className="secondary disconnect-button"
-            onClick={disconnect}
-          >
+          <button className="secondary disconnect-button" onClick={disconnect}>
             Disconnect Spotify
           </button>
         </div>

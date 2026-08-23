@@ -262,3 +262,131 @@ button:disabled {
     box-sizing: border-box;
   }
 }
+/* listening timeline */
+.timeline-section {
+  margin-top: 32px;
+}
+
+.timeline-section h3 {
+  margin-bottom: 16px;
+}
+
+/* listening range buttons */
+.range-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.active-range {
+  background: #1ed760;
+  color: #071108;
+}
+
+/* timeline tracks */
+.timeline-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline-card {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 32px 70px 1fr;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  background: #151816;
+  color: #ffffff;
+  border: 1px solid #29302c;
+  border-radius: 14px;
+  text-align: left;
+}
+
+.timeline-card:hover {
+  border-color: #1ed760;
+}
+
+.timeline-card img {
+  width: 70px;
+  height: 70px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.timeline-details {
+  display: grid;
+  gap: 4px;
+}
+
+.timeline-details strong {
+  color: #ffffff;
+}
+
+.timeline-details span {
+  color: #aeb7b2;
+  font-size: 14px;
+}
+
+/* selected track */
+.selected-track {
+  margin-top: 24px;
+  padding: 20px;
+  background: #151816;
+  border: 1px solid #1ed760;
+  border-radius: 14px;
+}
+
+.selected-track img {
+  width: 120px;
+  height: 120px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.selected-track h4 {
+  margin: 12px 0 6px;
+  font-size: 20px;
+}
+
+.selected-track p {
+  margin: 5px 0;
+  color: #aeb7b2;
+}
+
+.selected-track a {
+  display: inline-block;
+  margin-top: 12px;
+  color: #1ed760;
+  text-decoration: none;
+}
+
+.selected-track a:hover {
+  text-decoration: underline;
+}
+
+/* timeline on smaller screens */
+@media (max-width: 600px) {
+  .range-buttons {
+    flex-direction: column;
+  }
+
+  .range-buttons button {
+    width: 100%;
+  }
+
+  .timeline-card {
+    grid-template-columns: 28px 56px 1fr;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .timeline-card img {
+    width: 56px;
+    height: 56px;
+  }
+}
