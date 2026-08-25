@@ -191,3 +191,11 @@ export async function searchSpotify(accessToken, searchTerm, type) {
 
   return searchResults;
 }
+// get the connected spotify user
+export async function fetchSpotifyProfile(accessToken) {
+  const profile = await spotifyGet('/me', accessToken);
+
+  return {
+    id: profile.id,
+  };
+}
