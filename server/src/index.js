@@ -15,6 +15,10 @@ import {
   notFound,
 } from './middleware/errorHandler.js';
 
+import {
+  memoriesRouter,
+} from './routes/memories.routes.js';
+
 // create the express app
 const app = express();
 
@@ -61,6 +65,7 @@ app.get('/api/health', (req, res) => {
 // connect the application routes
 app.use('/api/auth', authRouter);
 app.use('/api', tracksRouter);
+app.use('/api', memoriesRouter);
 
 // handle missing routes and errors
 app.use(notFound);
