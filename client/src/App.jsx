@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 
 import {
+  createMemory,
+  deleteMemory,
   getAuthStatus,
+  getMemories,
   getRecentlyPlayed,
   getTopTracks,
   loginUrl,
   logout,
   searchSpotify,
+  updateMemory,
 } from "./api.js";
 
 import "./styles.css";
@@ -31,6 +35,15 @@ function formatRangeName(range) {
   return "All Time";
 }
 
+// make mood names easier to read
+function formatMoodName(mood) {
+  if (!mood) {
+    return "";
+  }
+
+  return mood.charAt(0).toUpperCase() + mood.slice(1);
+}
+
 export default function App() {
   // app information
   const [authenticated, setAuthenticated] = useState(false);
@@ -45,6 +58,14 @@ export default function App() {
   const [recentTracks, setRecentTracks] = useState(null);
   const [timelineLoading, setTimelineLoading] = useState(false);
   const [recentLoading, setRecentLoading] = useState(false);
+
+  // timeline memory information
+  const [memories, setMemories] = useState([]);
+  const [memoryTrack, setMemoryTrack] = useState(null);
+  const [memoryMood, setMemoryMood] = useState("");
+  const [memoryNote, setMemoryNote] = useState("");
+  const [memorySaving, setMemorySaving] = useState(false);
+
   // search information
   const [searchTerm, setSearchTerm] = useState("");
   const [searchType, setSearchType] = useState("artist");
@@ -98,17 +119,31 @@ export default function App() {
     setSelectedTrack(track);
   }
 
-  // load recently played
+  // find a memory for a specific play
+  function findMemoryForTrack(track) {
+    return memories.find((memory) => {
+      const memoryDate = new Date(memory.played_at).getTime();
+
+      const trackDate = new Date(track.playedAt).getTime();
+
+      return memory.track_id === track.id && memoryDate === trackDate;
+    });
+  }
+
+  // load recently played and saved memories
   async function loadRecentlyPlayed() {
     setRecentLoading(true);
     setMessage("");
 
     try {
-      const result = await getRecentlyPlayed();
+      const trackResult = await getRecentlyPlayed();
 
-      setRecentTracks(result.data);
+      const memoryResult = await getMemories();
 
-      if (result.data.length > 0) {
+      setRecentTracks(trackResult.data);
+      setMemories(memoryResult.data);
+
+      if (trackResult.data.length > 0) {
         setMessage("Your recently played songs were loaded.");
       } else {
         setMessage("No recently played songs were found.");
@@ -119,12 +154,120 @@ export default function App() {
       setRecentLoading(false);
     }
   }
+
+  // open the memory form
+  function openMemoryForm(track) {
+    const savedMemory = findMemoryForTrack(track);
+
+    setMemoryTrack(track);
+
+    if (savedMemory) {
+      setMemoryMood(savedMemory.mood || "");
+      setMemoryNote(savedMemory.note || "");
+    } else {
+      setMemoryMood("");
+      setMemoryNote("");
+    }
+
+    setMessage("");
+  }
+
+  // close the memory form
+  function closeMemoryForm() {
+    setMemoryTrack(null);
+    setMemoryMood("");
+    setMemoryNote("");
+  }
+
+  // save a new or updated memory
+  async function saveTrackMemory(event) {
+    event.preventDefault();
+
+    const cleanNote = memoryNote.trim();
+
+    if (!memoryMood && !cleanNote) {
+      setMessage("Choose a mood or write a note before saving.");
+
+      return;
+    }
+
+    setMemorySaving(true);
+    setMessage("");
+
+    try {
+      const savedMemory = findMemoryForTrack(memoryTrack);
+
+      let result;
+
+      if (savedMemory) {
+        result = await updateMemory(savedMemory.id, memoryMood, cleanNote);
+
+        setMemories((currentMemories) =>
+          currentMemories.map((memory) => {
+            if (memory.id === savedMemory.id) {
+              return result.data;
+            }
+
+            return memory;
+          }),
+        );
+
+        setMessage("Your memory was updated.");
+      } else {
+        result = await createMemory(
+          memoryTrack.id,
+          memoryTrack.playedAt,
+          memoryMood,
+          cleanNote,
+        );
+
+        setMemories((currentMemories) => [result.data, ...currentMemories]);
+
+        setMessage("Your memory was saved.");
+      }
+
+      closeMemoryForm();
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setMemorySaving(false);
+    }
+  }
+
+  // delete a saved memory
+  async function removeTrackMemory(memory) {
+    const shouldDelete = window.confirm("Delete this memory?");
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    setMemorySaving(true);
+    setMessage("");
+
+    try {
+      await deleteMemory(memory.id);
+
+      setMemories((currentMemories) =>
+        currentMemories.filter((item) => item.id !== memory.id),
+      );
+
+      closeMemoryForm();
+      setMessage("Your memory was deleted.");
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setMemorySaving(false);
+    }
+  }
+
   // search spotify
   async function handleSearch(event) {
     event.preventDefault();
 
     if (!searchTerm.trim()) {
       setMessage("Please enter something to search.");
+
       return;
     }
 
@@ -159,6 +302,8 @@ export default function App() {
       setSelectedRange("short_term");
       setSearchResults([]);
       setSearchTerm("");
+      setMemories([]);
+      closeMemoryForm();
       setActivePage("search");
       setMessage("Spotify disconnected.");
     } catch (error) {
@@ -240,7 +385,9 @@ export default function App() {
                   onChange={(event) => setSearchType(event.target.value)}
                 >
                   <option value="artist">Artists</option>
+
                   <option value="album">Albums</option>
+
                   <option value="track">Tracks</option>
                 </select>
 
@@ -296,6 +443,7 @@ export default function App() {
                   {recentLoading ? "Loading Tracks..." : "Load Recently Played"}
                 </button>
               </div>
+
               {topTracks && (
                 <div className="timeline-section">
                   <h3>{formatRangeName(selectedRange)}</h3>
@@ -412,39 +560,145 @@ export default function App() {
 
                   {recentTracks.length > 0 && (
                     <ol className="track-list">
-                      {recentTracks.map((track, index) => (
-                        <li
-                          key={`${track.id}-${track.playedAt}`}
-                          className="track-card"
-                        >
-                          <span className="track-number">{index + 1}</span>
+                      {recentTracks.map((track, index) => {
+                        const savedMemory = findMemoryForTrack(track);
 
-                          {track.albumImageUrl && (
-                            <img
-                              src={track.albumImageUrl}
-                              alt={track.albumName}
-                            />
-                          )}
+                        const formIsOpen =
+                          memoryTrack &&
+                          memoryTrack.id === track.id &&
+                          memoryTrack.playedAt === track.playedAt;
 
-                          <div className="track-details">
-                            <a
-                              href={track.spotifyUrl}
-                              target="_blank"
-                              rel="noreferrer"
+                        return (
+                          <li
+                            key={`${track.id}-${track.playedAt}`}
+                            className="track-card"
+                          >
+                            <span className="track-number">{index + 1}</span>
+
+                            {track.albumImageUrl && (
+                              <img
+                                src={track.albumImageUrl}
+                                alt={track.albumName}
+                              />
+                            )}
+
+                            <div className="track-details">
+                              <a
+                                href={track.spotifyUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {track.name}
+                              </a>
+
+                              <span>
+                                {track.artists.join(", ")} · {track.albumName}
+                              </span>
+
+                              <time dateTime={track.playedAt}>
+                                {formatPlayedAt(track.playedAt)}
+                              </time>
+
+                              {savedMemory && (
+                                <div className="memory-preview">
+                                  {savedMemory.mood && (
+                                    <span className="memory-mood">
+                                      {formatMoodName(savedMemory.mood)}
+                                    </span>
+                                  )}
+
+                                  {savedMemory.note && (
+                                    <p>{savedMemory.note}</p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            <button
+                              className="secondary memory-button"
+                              type="button"
+                              onClick={() => openMemoryForm(track)}
                             >
-                              {track.name}
-                            </a>
+                              {savedMemory ? "Edit Memory" : "Add Memory"}
+                            </button>
 
-                            <span>
-                              {track.artists.join(", ")} · {track.albumName}
-                            </span>
+                            {formIsOpen && (
+                              <form
+                                className="memory-form"
+                                onSubmit={saveTrackMemory}
+                              >
+                                <h3>
+                                  {savedMemory ? "Edit Memory" : "Add Memory"}
+                                </h3>
 
-                            <time dateTime={track.playedAt}>
-                              {formatPlayedAt(track.playedAt)}
-                            </time>
-                          </div>
-                        </li>
-                      ))}
+                                <label htmlFor={`mood-${track.id}`}>Mood</label>
+
+                                <select
+                                  id={`mood-${track.id}`}
+                                  value={memoryMood}
+                                  onChange={(event) =>
+                                    setMemoryMood(event.target.value)
+                                  }
+                                >
+                                  <option value="">Choose a mood</option>
+
+                                  <option value="happy">Happy</option>
+
+                                  <option value="calm">Calm</option>
+
+                                  <option value="energized">Energized</option>
+
+                                  <option value="focused">Focused</option>
+
+                                  <option value="nostalgic">Nostalgic</option>
+
+                                  <option value="sad">Sad</option>
+                                </select>
+
+                                <label htmlFor={`note-${track.id}`}>Note</label>
+
+                                <textarea
+                                  id={`note-${track.id}`}
+                                  maxLength="500"
+                                  placeholder="Write something about this moment."
+                                  value={memoryNote}
+                                  onChange={(event) =>
+                                    setMemoryNote(event.target.value)
+                                  }
+                                />
+
+                                <div className="memory-actions">
+                                  <button type="submit" disabled={memorySaving}>
+                                    {memorySaving ? "Saving..." : "Save Memory"}
+                                  </button>
+
+                                  <button
+                                    className="secondary"
+                                    type="button"
+                                    onClick={closeMemoryForm}
+                                    disabled={memorySaving}
+                                  >
+                                    Cancel
+                                  </button>
+
+                                  {savedMemory && (
+                                    <button
+                                      className="delete-memory"
+                                      type="button"
+                                      onClick={() =>
+                                        removeTrackMemory(savedMemory)
+                                      }
+                                      disabled={memorySaving}
+                                    >
+                                      Delete
+                                    </button>
+                                  )}
+                                </div>
+                              </form>
+                            )}
+                          </li>
+                        );
+                      })}
                     </ol>
                   )}
                 </section>

@@ -1,4 +1,5 @@
 /* main layout */
+
 :root {
   font-family: Inter, system-ui, sans-serif;
   color: #f5f5f5;
@@ -10,16 +11,17 @@ body {
   min-width: 320px;
   min-height: 100vh;
   display: grid;
-  place-items: center;
+  place-items: start center;
 }
 
 main {
   width: 90%;
-  max-width: 680px;
+  max-width: 900px;
   padding: 40px 0;
 }
 
 /* headings */
+
 .eyebrow {
   color: #1ed760;
   font-size: 12px;
@@ -40,6 +42,7 @@ h1 {
 }
 
 /* buttons */
+
 button,
 .button {
   border: none;
@@ -70,6 +73,7 @@ button:disabled {
 }
 
 /* navigation */
+
 .navigation {
   display: flex;
   gap: 12px;
@@ -91,6 +95,7 @@ button:disabled {
 }
 
 /* search form */
+
 .search-form {
   display: flex;
   gap: 12px;
@@ -114,6 +119,7 @@ button:disabled {
 }
 
 /* search results */
+
 .search-results {
   display: grid;
   gap: 16px;
@@ -155,114 +161,8 @@ button:disabled {
   text-decoration: underline;
 }
 
-/* track counts */
-.count-list {
-  margin-top: 32px;
-  padding: 20px 20px 20px 38px;
-  background: #151816;
-  border: 1px solid #29302c;
-  border-radius: 16px;
-}
-
-/* recently played */
-.recent-section {
-  margin-top: 32px;
-}
-
-.recent-section h2 {
-  margin-bottom: 12px;
-  font-size: 24px;
-}
-
-.track-list {
-  display: grid;
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.track-card {
-  display: grid;
-  grid-template-columns: 32px 56px 1fr;
-  gap: 14px;
-  align-items: center;
-  padding: 12px;
-  background: #151816;
-  border: 1px solid #29302c;
-  border-radius: 14px;
-}
-
-.track-card img {
-  width: 56px;
-  height: 56px;
-  border-radius: 8px;
-  object-fit: cover;
-}
-
-.track-number {
-  color: #87908b;
-  text-align: center;
-  font-weight: 700;
-}
-
-.track-details {
-  display: grid;
-  min-width: 0;
-  gap: 3px;
-}
-
-.track-details a {
-  overflow: hidden;
-  color: #f5f5f5;
-  font-weight: 800;
-  text-decoration: none;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.track-details a:hover {
-  color: #1ed760;
-  text-decoration: underline;
-}
-
-.track-details span,
-.track-details time,
-.empty-state {
-  color: #aeb7b2;
-  font-size: 14px;
-}
-
-/* messages */
-.status {
-  color: #cbd2ce;
-}
-
-/* smaller screens */
-@media (max-width: 600px) {
-  h1 {
-    font-size: 48px;
-  }
-
-  .navigation {
-    gap: 8px;
-  }
-
-  .navigation button {
-    padding: 12px 14px;
-  }
-
-  .search-form {
-    flex-direction: column;
-  }
-
-  .search-input,
-  .search-select {
-    width: 100%;
-    box-sizing: border-box;
-  }
-}
 /* listening timeline */
+
 .timeline-section {
   margin-top: 32px;
 }
@@ -271,7 +171,6 @@ button:disabled {
   margin-bottom: 16px;
 }
 
-/* listening range buttons */
 .range-buttons {
   display: flex;
   gap: 10px;
@@ -284,7 +183,6 @@ button:disabled {
   color: #071108;
 }
 
-/* timeline tracks */
 .timeline-list {
   display: grid;
   gap: 12px;
@@ -333,6 +231,7 @@ button:disabled {
 }
 
 /* selected track */
+
 .selected-track {
   margin-top: 24px;
   padding: 20px;
@@ -369,8 +268,210 @@ button:disabled {
   text-decoration: underline;
 }
 
-/* timeline on smaller screens */
+/* recently played */
+
+.recent-section {
+  margin-top: 32px;
+}
+
+.recent-section h2 {
+  margin-bottom: 12px;
+  font-size: 24px;
+}
+
+.track-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.track-card {
+  display: grid;
+  grid-template-columns:
+    32px 56px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  background: #151816;
+  border: 1px solid #29302c;
+  border-radius: 14px;
+}
+
+.track-card img {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.track-number {
+  color: #87908b;
+  text-align: center;
+  font-weight: 700;
+}
+
+.track-details {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.track-details a {
+  overflow: hidden;
+  color: #f5f5f5;
+  font-weight: 800;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.track-details a:hover {
+  color: #1ed760;
+  text-decoration: underline;
+}
+
+.track-details span,
+.track-details time,
+.empty-state {
+  color: #aeb7b2;
+  font-size: 14px;
+}
+
+/* memory button */
+
+.memory-button {
+  padding: 10px 14px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* saved memory */
+
+.memory-preview {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.track-details .memory-mood {
+  display: inline-block;
+  width: fit-content;
+  padding: 5px 9px;
+  border: 1px solid #6f45a8;
+  border-radius: 20px;
+  background: #352052;
+  color: #e3ceff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.memory-preview p {
+  width: 100%;
+  margin: 2px 0 0;
+  color: #d1d7d3;
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* memory form */
+
+.memory-form {
+  grid-column: 2 / -1;
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  background: #0f1210;
+  border: 1px solid #353d38;
+  border-radius: 12px;
+}
+
+.memory-form h3 {
+  margin: 0 0 8px;
+}
+
+.memory-form label {
+  color: #cbd2ce;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.memory-form select,
+.memory-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid #353d38;
+  border-radius: 8px;
+  background: #191d1a;
+  color: #ffffff;
+  font: inherit;
+}
+
+.memory-form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.memory-form select:focus,
+.memory-form textarea:focus {
+  outline: 2px solid #1ed760;
+  outline-offset: 2px;
+}
+
+/* memory form buttons */
+
+.memory-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.delete-memory {
+  background: #401b20;
+  color: #ff9da6;
+}
+
+/* messages */
+
+.status {
+  color: #cbd2ce;
+}
+
+/* smaller screens */
+
 @media (max-width: 600px) {
+  main {
+    width: calc(100% - 32px);
+    padding: 24px 0;
+  }
+
+  h1 {
+    font-size: 48px;
+  }
+
+  .navigation {
+    gap: 8px;
+  }
+
+  .navigation button {
+    padding: 12px 14px;
+  }
+
+  .search-form {
+    flex-direction: column;
+  }
+
+  .search-input,
+  .search-select {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
   .range-buttons {
     flex-direction: column;
   }
@@ -388,5 +489,34 @@ button:disabled {
   .timeline-card img {
     width: 56px;
     height: 56px;
+  }
+
+  .track-card {
+    grid-template-columns:
+      28px 48px minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .track-card img {
+    width: 48px;
+    height: 48px;
+  }
+
+  .memory-button {
+    grid-column: 2 / -1;
+    width: 100%;
+  }
+
+  .memory-form {
+    grid-column: 1 / -1;
+  }
+
+  .memory-actions {
+    flex-direction: column;
+  }
+
+  .memory-actions button {
+    width: 100%;
   }
 }
