@@ -2,7 +2,7 @@
 
 ## Visual direction
 
-Sonic Chronicle will use a dark music-journal design inspired by the approved Figma screens.
+Sonic Chronicle uses a dark music-journal design based on the approved Figma direction.
 
 ### Main colors
 
@@ -16,15 +16,15 @@ Sonic Chronicle will use a dark music-journal design inspired by the approved Fi
 
 ### Shared layout
 
-Authenticated pages will use:
+Authenticated pages use:
 
 - Sonic Chronicle branding
-- Desktop sidebar navigation
-- Mobile navigation
-- Loading and error messages
+- Route-based navigation
+- Responsive mobile navigation
+- Loading, empty, success, and error messages
 - Consistent cards, buttons, and form fields
 - Spotify connection status
-- Responsive layouts
+- Responsive desktop and mobile layouts
 
 ## Route map
 
@@ -34,27 +34,27 @@ Authenticated pages will use:
 | `/login` | Public | Allows the user to connect Spotify |
 | `/chronicle` | Protected | Displays recently played songs, top tracks, moods, and notes |
 | `/search` | Protected | Searches Spotify for tracks, artists, and albums |
-| `/track/:trackId` | Protected | Displays the Track Story and memory controls |
+| `/track/:trackId` | Protected | Displays a Track Story and memory controls |
 | `/playlist` | Protected | Reviews selected tracks and creates a Spotify playlist |
-| `/account` | Protected | Displays Spotify status, counts, and logout |
+| `/account` | Protected | Displays Spotify profile information, counts, and logout |
 
 ## Login route
 
-The Login screen will include:
+The Login screen includes:
 
-- Sonic Chronicle name
-- Short application description
+- Sonic Chronicle branding
+- A short application description
 - Connect Spotify button
-- Spotify authorization error
+- Spotify authorization error message
 - Loading state while authorization is checked
 
-Authenticated users should not remain on the Login screen.
+Authenticated users are redirected from Login to `/chronicle`.
 
 ## Chronicle route
 
-The Chronicle is the main authenticated page.
+Chronicle is the main authenticated page.
 
-It will include:
+It includes:
 
 - Recently Played view
 - Top Tracks view
@@ -67,17 +67,22 @@ It will include:
 - Mood labels
 - Note previews
 - Add or Edit Memory button
+- Track Story links
 - Track selection for playlists
+- Loading, empty, and error states
 
-Recently Played supplies exact dates for the timeline. Top Tracks will be displayed by rank because Spotify does not provide exact played dates for top-track results.
+Recently Played supplies exact dates for the timeline. Top Tracks are displayed by rank because Spotify does not provide exact played dates for top-track results.
+
+Selected playlist tracks are temporarily stored in browser local storage so they remain available when the user visits `/playlist`.
 
 ## Search route
 
-The Search page will include:
+The Search page includes:
 
 - Search field
 - Artist, album, and track options
 - Search button
+- Keyboard form submission
 - Initial instructions
 - Loading state
 - No-results state
@@ -87,81 +92,119 @@ The Search page will include:
 
 ## Track Story route
 
-The original Player design will become a Track Story page.
+The original Player concept was simplified into a Track Story page.
 
-It will include:
+It includes:
 
 - Large album artwork
 - Track name
 - Artist and album
-- Played date and time when available
+- Played date and time
 - Open in Spotify button
 - Mood selector
 - Note field
 - Save, edit, and delete memory controls
+- Loading state
+- Missing-track state
+- Error state
+- Responsive layout
 
 Full playback, lyrics, and queue controls are outside the current MVP.
 
 ## Playlist route
 
-The Playlist page will include:
+The Playlist page includes:
 
 - Selected-track review
+- Duplicate-track removal
 - Remove-track controls
 - Playlist name
 - Optional description
 - Public or private setting
-- Create Playlist button
+- Create on Spotify button
 - Loading, validation, success, and error states
 - Open in Spotify link after creation
 
+Playlist creation is sent through the protected backend route:
+
+```text
+POST /api/playlists
+```
+
+The backend creates the playlist and adds the selected tracks using the Spotify Web API.
+
 ## Account route
 
-The Account page will include:
+The Account page includes:
 
 - Available Spotify profile information
 - Spotify Connected status
 - Song count
 - Memory count
 - Playlist count
+- Spotify profile link
 - Disconnect Spotify button
+- Responsive layout
 
 Notifications, privacy settings, chapters, and journal export are outside the current MVP.
 
 ## Authorization rules
 
-Protected routes must check the backend authorization status.
+The application checks the backend authorization status before displaying protected routes.
 
 When `authenticated` is false:
 
-1. Clear protected frontend information.
-2. Send the user to `/login`.
-3. Display the Spotify connection screen.
+1. Protected routes redirect to `/login`.
+2. The Spotify connection screen is displayed.
+3. The user must authorize Spotify before returning to the application.
 
 When `authenticated` is true:
 
-1. Allow protected routes.
-2. Send a user leaving Login to `/chronicle`.
+1. Protected routes are available.
+2. A user visiting Login is redirected to `/chronicle`.
+3. Backend requests use the HTTP-only session cookie.
 
-A `401` response from a protected backend route should also return the user to Login.
+The backend also protects Spotify routes with authentication middleware. Missing or invalid Spotify authorization returns a `401` response.
 
-## Planned frontend structure
+## Current frontend structure
 
 ```text
 client/src/
-├── components/
-│   ├── AppLayout.jsx
-│   ├── MemoryForm.jsx
-│   ├── ProtectedRoute.jsx
-│   └── TrackCard.jsx
 ├── pages/
 │   ├── AccountPage.jsx
-│   ├── ChroniclePage.jsx
-│   ├── LoginPage.jsx
 │   ├── PlaylistPage.jsx
 │   ├── SearchPage.jsx
 │   └── TrackStoryPage.jsx
-├── App.jsx
 ├── api.js
+├── App.jsx
+├── AuthenticatedApp.jsx
 ├── main.jsx
 └── styles.css
+```
+
+`App.jsx` defines the routes and authentication protection.
+
+`AuthenticatedApp.jsx` currently contains the Chronicle interface and its timeline memory controls.
+
+The files inside `pages` contain the separate Search, Track Story, Playlist, and Account interfaces.
+
+## Current storage
+
+- Spotify access and refresh tokens are stored in PostgreSQL.
+- Timeline moods and notes are stored in PostgreSQL.
+- Selected playlist tracks are temporarily stored in browser local storage.
+- The local playlist count tracks playlists created through Sonic Chronicle.
+- The frontend does not receive Spotify access or refresh tokens.
+
+## Responsive behavior
+
+The interface supports desktop and mobile layouts.
+
+At smaller screen sizes:
+
+- Navigation wraps to additional lines.
+- Forms stack vertically.
+- Timeline and playlist cards use smaller artwork.
+- Memory controls expand to the available width.
+- Account count cards display in one column.
+- Track Story headings and artwork resize.
