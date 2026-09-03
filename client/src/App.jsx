@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router";
 
 import { getAuthStatus, loginUrl } from "./api.js";
 import AuthenticatedApp from "./AuthenticatedApp.jsx";
+import SearchPage from "./pages/SearchPage.jsx";
 
 import "./styles.css";
 
@@ -71,7 +72,9 @@ export default function App() {
   if (loading) {
     return (
       <main>
-        <p className="status">Checking Spotify connection...</p>
+        <p className="status">
+          Checking Spotify connection...
+        </p>
       </main>
     );
   }
@@ -102,7 +105,7 @@ export default function App() {
         path="/search"
         element={
           <ProtectedRoute authenticated={authenticated}>
-            <AuthenticatedApp initialPage="search" />
+            <SearchPage />
           </ProtectedRoute>
         }
       />
