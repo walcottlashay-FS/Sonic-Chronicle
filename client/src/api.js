@@ -4,7 +4,10 @@ const API_URL =
   "http://127.0.0.1:3000";
 
 // send requests to the backend
-async function apiFetch(path, options = {}) {
+async function apiFetch(
+  path,
+  options = {}
+) {
   let response;
 
   // include the spotify login session
@@ -23,13 +26,16 @@ async function apiFetch(path, options = {}) {
 
   // check for request errors
   if (!response.ok) {
-    let errorMessage = "Something went wrong.";
+    let errorMessage =
+      "Something went wrong.";
 
     try {
-      const result = await response.json();
+      const result =
+        await response.json();
 
       if (result.message) {
-        errorMessage = result.message;
+        errorMessage =
+          result.message;
       }
     } catch (error) {
       errorMessage =
@@ -53,12 +59,21 @@ export const loginUrl =
 
 // check login status
 export function getAuthStatus() {
-  return apiFetch("/api/auth/status");
+  return apiFetch(
+    "/api/auth/status"
+  );
+}
+
+// get spotify profile
+export function getSpotifyProfile() {
+  return apiFetch("/api/profile");
 }
 
 // get top tracks
 export function getTopTracks() {
-  return apiFetch("/api/top-tracks?limit=20");
+  return apiFetch(
+    "/api/top-tracks?limit=20"
+  );
 }
 
 // get recently played tracks
@@ -73,17 +88,22 @@ export function searchSpotify(
   searchTerm,
   searchType
 ) {
-  const query = new URLSearchParams({
-    q: searchTerm,
-    type: searchType,
-  });
+  const query =
+    new URLSearchParams({
+      q: searchTerm,
+      type: searchType,
+    });
 
-  return apiFetch(`/api/search?${query}`);
+  return apiFetch(
+    `/api/search?${query}`
+  );
 }
 
 // get timeline memories
 export function getMemories() {
-  return apiFetch("/api/memories");
+  return apiFetch(
+    "/api/memories"
+  );
 }
 
 // create a timeline memory
@@ -93,18 +113,22 @@ export function createMemory(
   mood,
   note
 ) {
-  return apiFetch("/api/memories", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      trackId: trackId,
-      playedAt: playedAt,
-      mood: mood,
-      note: note,
-    }),
-  });
+  return apiFetch(
+    "/api/memories",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+      },
+      body: JSON.stringify({
+        trackId: trackId,
+        playedAt: playedAt,
+        mood: mood,
+        note: note,
+      }),
+    }
+  );
 }
 
 // update a timeline memory
@@ -118,7 +142,8 @@ export function updateMemory(
     {
       method: "PATCH",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type":
+          "application/json",
       },
       body: JSON.stringify({
         mood: mood,
@@ -129,7 +154,9 @@ export function updateMemory(
 }
 
 // delete a timeline memory
-export function deleteMemory(memoryId) {
+export function deleteMemory(
+  memoryId
+) {
   return apiFetch(
     `/api/memories/${memoryId}`,
     {
@@ -145,23 +172,30 @@ export function createPlaylist(
   isPublic,
   trackIds
 ) {
-  return apiFetch("/api/playlists", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      name: name,
-      description: description,
-      isPublic: isPublic,
-      trackIds: trackIds,
-    }),
-  });
+  return apiFetch(
+    "/api/playlists",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+      },
+      body: JSON.stringify({
+        name: name,
+        description: description,
+        isPublic: isPublic,
+        trackIds: trackIds,
+      }),
+    }
+  );
 }
 
 // disconnect spotify
 export function logout() {
-  return apiFetch("/api/auth/logout", {
-    method: "POST",
-  });
+  return apiFetch(
+    "/api/auth/logout",
+    {
+      method: "POST",
+    }
+  );
 }

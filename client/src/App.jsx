@@ -1,45 +1,80 @@
 import { useEffect, useState } from "react";
-import { Navigate, Route, Routes } from "react-router";
+import {
+  Navigate,
+  Route,
+  Routes,
+} from "react-router";
 
-import { getAuthStatus, loginUrl } from "./api.js";
+import {
+  getAuthStatus,
+  loginUrl,
+} from "./api.js";
+
 import AuthenticatedApp from "./AuthenticatedApp.jsx";
+import AccountPage from "./pages/AccountPage.jsx";
+import PlaylistPage from "./pages/PlaylistPage.jsx";
 import SearchPage from "./pages/SearchPage.jsx";
 import TrackStoryPage from "./pages/TrackStoryPage.jsx";
 
 import "./styles.css";
 
 // stop users from opening pages without spotify
-function ProtectedRoute({ authenticated, children }) {
+function ProtectedRoute({
+  authenticated,
+  children,
+}) {
   if (!authenticated) {
-    return <Navigate to="/login" replace />;
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
   }
 
   return children;
 }
 
 // show the spotify login screen
-function LoginPage({ authenticated, message }) {
+function LoginPage({
+  authenticated,
+  message,
+}) {
   if (authenticated) {
-    return <Navigate to="/chronicle" replace />;
+    return (
+      <Navigate
+        to="/chronicle"
+        replace
+      />
+    );
   }
 
   return (
     <main className="login-page">
-      <p className="eyebrow">YOUR MUSIC JOURNAL</p>
+      <p className="eyebrow">
+        YOUR MUSIC JOURNAL
+      </p>
 
       <h1>Sonic Chronicle</h1>
 
       <p className="intro">
-        Connect your Spotify account to turn your listening history into
+        Connect your Spotify account to
+        turn your listening history into
         memories, moods, and stories.
       </p>
 
-      <a className="button" href={loginUrl}>
+      <a
+        className="button"
+        href={loginUrl}
+      >
         Connect Spotify
       </a>
 
       {message && (
-        <p className="status" role="status">
+        <p
+          className="status"
+          role="status"
+        >
           {message}
         </p>
       )}
@@ -48,17 +83,27 @@ function LoginPage({ authenticated, message }) {
 }
 
 export default function App() {
-  const [authenticated, setAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
+  const [
+    authenticated,
+    setAuthenticated,
+  ] = useState(false);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [message, setMessage] =
+    useState("");
 
   // check whether spotify is connected
   useEffect(() => {
     async function checkLogin() {
       try {
-        const result = await getAuthStatus();
+        const result =
+          await getAuthStatus();
 
-        setAuthenticated(result.authenticated);
+        setAuthenticated(
+          result.authenticated
+        );
       } catch (error) {
         setAuthenticated(false);
         setMessage(error.message);
@@ -73,7 +118,9 @@ export default function App() {
   if (loading) {
     return (
       <main>
-        <p className="status">Checking Spotify connection...</p>
+        <p className="status">
+          Checking Spotify connection...
+        </p>
       </main>
     );
   }
@@ -84,7 +131,11 @@ export default function App() {
         path="/"
         element={
           <Navigate
-            to={authenticated ? "/chronicle" : "/login"}
+            to={
+              authenticated
+                ? "/chronicle"
+                : "/login"
+            }
             replace
           />
         }
@@ -94,7 +145,9 @@ export default function App() {
         path="/login"
         element={
           <LoginPage
-            authenticated={authenticated}
+            authenticated={
+              authenticated
+            }
             message={message}
           />
         }
@@ -103,7 +156,11 @@ export default function App() {
       <Route
         path="/search"
         element={
-          <ProtectedRoute authenticated={authenticated}>
+          <ProtectedRoute
+            authenticated={
+              authenticated
+            }
+          >
             <SearchPage />
           </ProtectedRoute>
         }
@@ -112,8 +169,14 @@ export default function App() {
       <Route
         path="/chronicle"
         element={
-          <ProtectedRoute authenticated={authenticated}>
-            <AuthenticatedApp initialPage="chronicle" />
+          <ProtectedRoute
+            authenticated={
+              authenticated
+            }
+          >
+            <AuthenticatedApp
+              initialPage="chronicle"
+            />
           </ProtectedRoute>
         }
       />
@@ -121,7 +184,11 @@ export default function App() {
       <Route
         path="/track/:trackId"
         element={
-          <ProtectedRoute authenticated={authenticated}>
+          <ProtectedRoute
+            authenticated={
+              authenticated
+            }
+          >
             <TrackStoryPage />
           </ProtectedRoute>
         }
@@ -130,8 +197,25 @@ export default function App() {
       <Route
         path="/playlist"
         element={
-          <ProtectedRoute authenticated={authenticated}>
-            <AuthenticatedApp initialPage="playlist" />
+          <ProtectedRoute
+            authenticated={
+              authenticated
+            }
+          >
+            <PlaylistPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/account"
+        element={
+          <ProtectedRoute
+            authenticated={
+              authenticated
+            }
+          >
+            <AccountPage />
           </ProtectedRoute>
         }
       />
@@ -140,7 +224,11 @@ export default function App() {
         path="*"
         element={
           <Navigate
-            to={authenticated ? "/chronicle" : "/login"}
+            to={
+              authenticated
+                ? "/chronicle"
+                : "/login"
+            }
             replace
           />
         }
