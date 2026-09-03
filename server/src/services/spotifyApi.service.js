@@ -1,45 +1,109 @@
-const SPOTIFY_API = 'https://api.spotify.com/v1';
+const SPOTIFY_API =
+  "https://api.spotify.com/v1";
 
 // spotify listening ranges
 export const TIME_RANGES = [
-  'short_term',
-  'medium_term',
-  'long_term',
+  "short_term",
+  "medium_term",
+  "long_term",
 ];
 
+// create a readable spotify error
+async function throwSpotifyError(response) {
+  let errorMessage =
+    "Spotify request failed.";
+
+  try {
+    const result = await response.json();
+
+    if (
+      result.error &&
+      result.error.message
+    ) {
+      errorMessage =
+        result.error.message;
+    }
+  } catch (error) {
+    errorMessage =
+      "Could not read the Spotify error.";
+  }
+
+  const spotifyError =
+    new Error(errorMessage);
+
+  spotifyError.status =
+    response.status;
+
+  spotifyError.retryAfter =
+    response.headers.get("retry-after");
+
+  throw spotifyError;
+}
+
 // get information from spotify
-async function spotifyGet(path, accessToken) {
+async function spotifyGet(
+  path,
+  accessToken
+) {
   let response;
 
   try {
-    response = await fetch(`${SPOTIFY_API}${path}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    response = await fetch(
+      `${SPOTIFY_API}${path}`,
+      {
+        headers: {
+          Authorization:
+            `Bearer ${accessToken}`,
+        },
+      }
+    );
   } catch (error) {
-    throw new Error('Could not connect to Spotify.');
+    throw new Error(
+      "Could not connect to Spotify."
+    );
   }
 
   if (!response.ok) {
-    let errorMessage = 'Spotify request failed.';
+    await throwSpotifyError(response);
+  }
 
-    try {
-      const result = await response.json();
+  return response.json();
+}
 
-      if (result.error && result.error.message) {
-        errorMessage = result.error.message;
+// send information to spotify
+async function spotifyPost(
+  path,
+  accessToken,
+  body
+) {
+  let response;
+
+  try {
+    response = await fetch(
+      `${SPOTIFY_API}${path}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization:
+            `Bearer ${accessToken}`,
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify(body),
       }
-    } catch (error) {
-      errorMessage = 'Could not read the Spotify error.';
-    }
+    );
+  } catch (error) {
+    throw new Error(
+      "Could not connect to Spotify."
+    );
+  }
 
-    const spotifyError = new Error(errorMessage);
+  if (!response.ok) {
+    await throwSpotifyError(response);
+  }
 
-    spotifyError.status = response.status;
-    spotifyError.retryAfter = response.headers.get('retry-after');
-
-    throw spotifyError;
+  if (response.status === 204) {
+    return null;
   }
 
   return response.json();
@@ -55,8 +119,11 @@ function normalizeTrack(track) {
 
   let albumImage = null;
 
-  if (track.album.images.length > 0) {
-    albumImage = track.album.images[0].url;
+  if (
+    track.album.images.length > 0
+  ) {
+    albumImage =
+      track.album.images[0].url;
   }
 
   return {
@@ -65,54 +132,74 @@ function normalizeTrack(track) {
     artists: artistNames,
     albumName: track.album.name,
     albumImageUrl: albumImage,
-    spotifyUrl: track.external_urls.spotify,
+    spotifyUrl:
+      track.external_urls.spotify,
   };
 }
 
 // get top tracks for each listening range
-export async function fetchTopTracksAcrossRanges(accessToken, limit = 20) {
+export async function fetchTopTracksAcrossRanges(
+  accessToken,
+  limit = 20
+) {
   const tracksByRange = {};
 
-  for (const timeRange of TIME_RANGES) {
-    const query = new URLSearchParams({
-      time_range: timeRange,
-      limit: String(limit),
-    });
+  for (
+    const timeRange of TIME_RANGES
+  ) {
+    const query =
+      new URLSearchParams({
+        time_range: timeRange,
+        limit: String(limit),
+      });
 
-    const result = await spotifyGet(
-      `/me/top/tracks?${query}`,
-      accessToken
-    );
+    const result =
+      await spotifyGet(
+        `/me/top/tracks?${query}`,
+        accessToken
+      );
 
     const tracks = [];
 
-    for (const track of result.items) {
-      tracks.push(normalizeTrack(track));
+    for (
+      const track of result.items
+    ) {
+      tracks.push(
+        normalizeTrack(track)
+      );
     }
 
-    tracksByRange[timeRange] = tracks;
+    tracksByRange[timeRange] =
+      tracks;
   }
 
   return tracksByRange;
 }
 
 // get recently played tracks
-export async function fetchRecentlyPlayed(accessToken, limit = 20) {
-  const query = new URLSearchParams({
-    limit: String(limit),
-  });
+export async function fetchRecentlyPlayed(
+  accessToken,
+  limit = 20
+) {
+  const query =
+    new URLSearchParams({
+      limit: String(limit),
+    });
 
-  const result = await spotifyGet(
-    `/me/player/recently-played?${query}`,
-    accessToken
-  );
+  const result =
+    await spotifyGet(
+      `/me/player/recently-played?${query}`,
+      accessToken
+    );
 
   const recentTracks = [];
 
   for (const item of result.items) {
-    const track = normalizeTrack(item.track);
+    const track =
+      normalizeTrack(item.track);
 
-    track.playedAt = item.played_at;
+    track.playedAt =
+      item.played_at;
 
     recentTracks.push(track);
   }
@@ -121,42 +208,49 @@ export async function fetchRecentlyPlayed(accessToken, limit = 20) {
 }
 
 // search artists, albums, and tracks
-export async function searchSpotify(accessToken, searchTerm, type) {
-  const query = new URLSearchParams({
-    q: searchTerm,
-    type: type,
-    limit: '10',
-  });
+export async function searchSpotify(
+  accessToken,
+  searchTerm,
+  type
+) {
+  const query =
+    new URLSearchParams({
+      q: searchTerm,
+      type: type,
+      limit: "10",
+    });
 
-  const results = await spotifyGet(
-    `/search?${query}`,
-    accessToken
-  );
+  const results =
+    await spotifyGet(
+      `/search?${query}`,
+      accessToken
+    );
 
   let items = [];
 
-  // get search results
-  if (type === 'artist') {
+  if (type === "artist") {
     items = results.artists.items;
   }
 
-  if (type === 'album') {
+  if (type === "album") {
     items = results.albums.items;
   }
 
-  if (type === 'track') {
+  if (type === "track") {
     items = results.tracks.items;
   }
 
   const searchResults = [];
 
-  // organize search results
   for (const item of items) {
     let image = null;
-    let artists = [];
-    let albumName = '';
+    const artists = [];
+    let albumName = "";
 
-    if (item.images && item.images.length > 0) {
+    if (
+      item.images &&
+      item.images.length > 0
+    ) {
       image = item.images[0].url;
     }
 
@@ -165,17 +259,21 @@ export async function searchSpotify(accessToken, searchTerm, type) {
       item.album.images &&
       item.album.images.length > 0
     ) {
-      image = item.album.images[0].url;
+      image =
+        item.album.images[0].url;
     }
 
     if (item.artists) {
-      for (const artist of item.artists) {
+      for (
+        const artist of item.artists
+      ) {
         artists.push(artist.name);
       }
     }
 
     if (item.album) {
-      albumName = item.album.name;
+      albumName =
+        item.album.name;
     }
 
     searchResults.push({
@@ -185,17 +283,106 @@ export async function searchSpotify(accessToken, searchTerm, type) {
       image: image,
       artists: artists,
       albumName: albumName,
-      spotifyUrl: item.external_urls.spotify,
+      spotifyUrl:
+        item.external_urls.spotify,
     });
   }
 
   return searchResults;
 }
+
 // get the connected spotify user
-export async function fetchSpotifyProfile(accessToken) {
-  const profile = await spotifyGet('/me', accessToken);
+export async function fetchSpotifyProfile(
+  accessToken
+) {
+  const profile =
+    await spotifyGet(
+      "/me",
+      accessToken
+    );
+
+  let profileImage = null;
+  let followerCount = 0;
+
+  if (
+    profile.images &&
+    profile.images.length > 0
+  ) {
+    profileImage =
+      profile.images[0].url;
+  }
+
+  if (profile.followers) {
+    followerCount =
+      profile.followers.total;
+  }
 
   return {
     id: profile.id,
+    displayName:
+      profile.display_name ||
+      "Spotify Listener",
+    image: profileImage,
+    spotifyUrl:
+      profile.external_urls.spotify,
+    followers: followerCount,
+  };
+}
+
+// create an empty spotify playlist
+async function spotifyCreatePlaylist(
+  accessToken,
+  name,
+  description,
+  isPublic
+) {
+  return spotifyPost(
+    "/me/playlists",
+    accessToken,
+    {
+      name: name,
+      description: description,
+      public: isPublic,
+    }
+  );
+}
+
+// create a spotify playlist and add tracks
+export async function createSpotifyPlaylist(
+  accessToken,
+  name,
+  description,
+  isPublic,
+  trackIds
+) {
+  const playlist =
+    await spotifyCreatePlaylist(
+      accessToken,
+      name,
+      description,
+      isPublic
+    );
+
+  const trackUris = [];
+
+  for (const trackId of trackIds) {
+    trackUris.push(
+      `spotify:track:${trackId}`
+    );
+  }
+
+  await spotifyPost(
+    `/playlists/${playlist.id}/items`,
+    accessToken,
+    {
+      uris: trackUris,
+    }
+  );
+
+  return {
+    id: playlist.id,
+    name: playlist.name,
+    spotifyUrl:
+      playlist.external_urls.spotify,
   };
 }
