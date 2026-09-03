@@ -32,7 +32,7 @@ function formatRangeName(range) {
     return "Last 6 Months";
   }
 
-  return "All Time";
+  return "Past Year";
 }
 
 // make mood names easier to read
@@ -44,11 +44,12 @@ function formatMoodName(mood) {
   return mood.charAt(0).toUpperCase() + mood.slice(1);
 }
 
-export default function AuthenticatedApp({ initialPage = "chronicle" }) {  // app information
+export default function AuthenticatedApp({ initialPage = "chronicle" }) {
+  // app information
   const [authenticated, setAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
-const [activePage, setActivePage] = useState(initialPage);
+  const [activePage, setActivePage] = useState(initialPage);
 
   // listening history
   const [topTracks, setTopTracks] = useState(null);
@@ -71,6 +72,9 @@ const [activePage, setActivePage] = useState(initialPage);
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
 
+  // tracks selected for the playlist
+  const [playlistTracks, setPlaylistTracks] = useState([]);
+
   // check spotify connection
   useEffect(() => {
     async function checkAuthStatus() {
@@ -86,6 +90,19 @@ const [activePage, setActivePage] = useState(initialPage);
     }
 
     checkAuthStatus();
+  }, []);
+
+  // load selected playlist tracks
+  useEffect(() => {
+    const savedTracks = localStorage.getItem("sonicPlaylistTracks");
+
+    if (savedTracks) {
+      try {
+        setPlaylistTracks(JSON.parse(savedTracks));
+      } catch (error) {
+        localStorage.removeItem("sonicPlaylistTracks");
+      }
+    }
   }, []);
 
   // load top tracks
@@ -116,6 +133,29 @@ const [activePage, setActivePage] = useState(initialPage);
   // select a track
   function showTrackDetails(track) {
     setSelectedTrack(track);
+  }
+
+  // check if a track is selected
+  function trackIsSelected(trackId) {
+    return playlistTracks.some((track) => track.id === trackId);
+  }
+
+  // add or remove a playlist track
+  function togglePlaylistTrack(track) {
+    let updatedTracks;
+
+    if (trackIsSelected(track.id)) {
+      updatedTracks = playlistTracks.filter((item) => item.id !== track.id);
+    } else {
+      updatedTracks = [...playlistTracks, track];
+    }
+
+    setPlaylistTracks(updatedTracks);
+
+    localStorage.setItem(
+      "sonicPlaylistTracks",
+      JSON.stringify(updatedTracks),
+    );
   }
 
   // find a memory for a specific play
@@ -289,16 +329,16 @@ const [activePage, setActivePage] = useState(initialPage);
     }
   }
 
- // disconnect spotify and return to login
-async function disconnect() {
-  try {
-    await logout();
+  // disconnect spotify and return to login
+  async function disconnect() {
+    try {
+      await logout();
 
-    window.location.href = "/login";
-  } catch (error) {
-    setMessage(error.message);
+      window.location.href = "/login";
+    } catch (error) {
+      setMessage(error.message);
+    }
   }
-}
 
   let selectedTracks = [];
 
@@ -468,7 +508,7 @@ async function disconnect() {
                       }
                       onClick={() => changeListeningRange("long_term")}
                     >
-                      All Time
+                      Past Year
                     </button>
                   </div>
 
@@ -532,6 +572,19 @@ async function disconnect() {
                       >
                         Open in Spotify
                       </a>
+
+                      <div className="playlist-selection">
+                        <button
+                          type="button"
+                          onClick={() => togglePlaylistTrack(selectedTrack)}
+                        >
+                          {trackIsSelected(selectedTrack.id)
+                            ? "Remove from Playlist"
+                            : "Add to Playlist"}
+                        </button>
+
+                        <span>{playlistTracks.length} selected</span>
+                      </div>
                     </div>
                   )}
                 </div>

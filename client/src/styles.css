@@ -3,7 +3,11 @@
 :root {
   font-family: Inter, system-ui, sans-serif;
   color: #f5f5f5;
-  background: #0b0d0c;
+  background: #080710;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
@@ -12,6 +16,10 @@ body {
   min-height: 100vh;
   display: grid;
   place-items: start center;
+  background:
+    radial-gradient(circle at 20% 10%, #19102c 0, transparent 35%),
+    radial-gradient(circle at 85% 75%, #102528 0, transparent 32%),
+    #080710;
 }
 
 main {
@@ -20,10 +28,24 @@ main {
   padding: 40px 0;
 }
 
+/* login page */
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.login-page .intro {
+  max-width: 560px;
+}
+
 /* headings */
 
 .eyebrow {
-  color: #1ed760;
+  color: #42cbb5;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 2px;
@@ -33,11 +55,21 @@ h1 {
   margin: 5px 0;
   font-size: 64px;
   line-height: 1;
+  background: linear-gradient(90deg, #8b4dff, #38c7cf);
+  background-clip: text;
+  color: transparent;
+}
+
+h2,
+h3,
+h4 {
+  color: #ffffff;
 }
 
 .intro {
-  color: #b7bdb9;
+  color: #a9a7b1;
   font-size: 18px;
+  line-height: 1.6;
   margin-bottom: 32px;
 }
 
@@ -56,8 +88,13 @@ button,
   text-decoration: none;
 }
 
+button:hover,
+.button:hover {
+  filter: brightness(1.08);
+}
+
 button.secondary {
-  background: #232725;
+  background: #211f29;
   color: #ffffff;
 }
 
@@ -78,11 +115,13 @@ button:disabled {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #292533;
 }
 
 .active-page {
-  background: #1ed760;
-  color: #071108;
+  background: linear-gradient(90deg, #7d43ef, #38bfc9);
+  color: #ffffff;
 }
 
 .page-section {
@@ -106,9 +145,9 @@ button:disabled {
 .search-input,
 .search-select {
   padding: 12px;
-  border: 1px solid #29302c;
+  border: 1px solid #332e40;
   border-radius: 8px;
-  background: #151816;
+  background: #15131c;
   color: #ffffff;
   font: inherit;
 }
@@ -131,9 +170,9 @@ button:disabled {
   gap: 16px;
   align-items: center;
   padding: 14px;
-  background: #151816;
-  border: 1px solid #29302c;
-  border-radius: 12px;
+  background: #121119;
+  border: 1px solid #2d2937;
+  border-radius: 14px;
 }
 
 .search-card img {
@@ -149,11 +188,11 @@ button:disabled {
 
 .search-details p {
   margin: 4px 0;
-  color: #aeb7b2;
+  color: #aaa7b3;
 }
 
 .search-details a {
-  color: #1ed760;
+  color: #42cbb5;
   text-decoration: none;
 }
 
@@ -179,8 +218,8 @@ button:disabled {
 }
 
 .active-range {
-  background: #1ed760;
-  color: #071108;
+  background: #7d43ef;
+  color: #ffffff;
 }
 
 .timeline-list {
@@ -198,15 +237,15 @@ button:disabled {
   gap: 14px;
   align-items: center;
   padding: 14px;
-  background: #151816;
+  background: linear-gradient(90deg, #131119, #101a1c);
   color: #ffffff;
-  border: 1px solid #29302c;
+  border: 1px solid #2d2937;
   border-radius: 14px;
   text-align: left;
 }
 
 .timeline-card:hover {
-  border-color: #1ed760;
+  border-color: #7d43ef;
 }
 
 .timeline-card img {
@@ -219,15 +258,22 @@ button:disabled {
 .timeline-details {
   display: grid;
   gap: 4px;
+  min-width: 0;
 }
 
 .timeline-details strong {
+  overflow: hidden;
   color: #ffffff;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .timeline-details span {
-  color: #aeb7b2;
+  overflow: hidden;
+  color: #aaa7b3;
   font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* selected track */
@@ -235,8 +281,8 @@ button:disabled {
 .selected-track {
   margin-top: 24px;
   padding: 20px;
-  background: #151816;
-  border: 1px solid #1ed760;
+  background: #121119;
+  border: 1px solid #7d43ef;
   border-radius: 14px;
 }
 
@@ -254,13 +300,13 @@ button:disabled {
 
 .selected-track p {
   margin: 5px 0;
-  color: #aeb7b2;
+  color: #aaa7b3;
 }
 
 .selected-track a {
   display: inline-block;
   margin-top: 12px;
-  color: #1ed760;
+  color: #42cbb5;
   text-decoration: none;
 }
 
@@ -268,35 +314,82 @@ button:disabled {
   text-decoration: underline;
 }
 
+/* playlist selection */
+
+.playlist-selection {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.playlist-selection span {
+  color: #aaa7b3;
+  font-size: 14px;
+}
+
 /* recently played */
 
 .recent-section {
-  margin-top: 32px;
+  margin-top: 42px;
 }
 
 .recent-section h2 {
-  margin-bottom: 12px;
+  margin-bottom: 18px;
   font-size: 24px;
 }
 
 .track-list {
+  position: relative;
   display: grid;
   gap: 12px;
   margin: 0;
-  padding: 0;
+  padding: 0 0 0 24px;
   list-style: none;
 }
 
+.track-list::before {
+  content: "";
+  position: absolute;
+  top: 20px;
+  bottom: 20px;
+  left: 7px;
+  width: 2px;
+  background: #30213f;
+}
+
 .track-card {
+  position: relative;
   display: grid;
-  grid-template-columns:
-    32px 56px minmax(0, 1fr) auto;
+  grid-template-columns: 32px 56px minmax(0, 1fr) auto;
   gap: 14px;
   align-items: center;
   padding: 14px;
-  background: #151816;
-  border: 1px solid #29302c;
+  background: linear-gradient(90deg, #131119, #101a1c);
+  border: 1px solid #2d2937;
   border-radius: 14px;
+}
+
+.track-card::before {
+  content: "";
+  position: absolute;
+  left: -25px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #8b3dff;
+  box-shadow: 0 0 12px #8b3dff;
+}
+
+.track-list li:nth-child(2n) .track-card::before {
+  background: #f0a000;
+  box-shadow: 0 0 12px #f0a000;
+}
+
+.track-list li:nth-child(3n) .track-card::before {
+  background: #42cbb5;
+  box-shadow: 0 0 12px #42cbb5;
 }
 
 .track-card img {
@@ -307,7 +400,7 @@ button:disabled {
 }
 
 .track-number {
-  color: #87908b;
+  color: #88848f;
   text-align: center;
   font-weight: 700;
 }
@@ -328,14 +421,14 @@ button:disabled {
 }
 
 .track-details a:hover {
-  color: #1ed760;
+  color: #42cbb5;
   text-decoration: underline;
 }
 
 .track-details span,
 .track-details time,
 .empty-state {
-  color: #aeb7b2;
+  color: #aaa7b3;
   font-size: 14px;
 }
 
@@ -384,8 +477,8 @@ button:disabled {
   display: grid;
   gap: 8px;
   padding: 18px;
-  background: #0f1210;
-  border: 1px solid #353d38;
+  background: #0d0c12;
+  border: 1px solid #3b3548;
   border-radius: 12px;
 }
 
@@ -394,7 +487,7 @@ button:disabled {
 }
 
 .memory-form label {
-  color: #cbd2ce;
+  color: #cbc7d2;
   font-size: 14px;
   font-weight: 700;
 }
@@ -402,11 +495,10 @@ button:disabled {
 .memory-form select,
 .memory-form textarea {
   width: 100%;
-  box-sizing: border-box;
   padding: 12px;
-  border: 1px solid #353d38;
+  border: 1px solid #3b3548;
   border-radius: 8px;
-  background: #191d1a;
+  background: #191721;
   color: #ffffff;
   font: inherit;
 }
@@ -417,12 +509,12 @@ button:disabled {
 }
 
 .memory-form select:focus,
-.memory-form textarea:focus {
-  outline: 2px solid #1ed760;
+.memory-form textarea:focus,
+.search-input:focus,
+.search-select:focus {
+  outline: 2px solid #7d43ef;
   outline-offset: 2px;
 }
-
-/* memory form buttons */
 
 .memory-actions {
   display: flex;
@@ -439,7 +531,8 @@ button:disabled {
 /* messages */
 
 .status {
-  color: #cbd2ce;
+  padding: 12px 0;
+  color: #cbc7d2;
 }
 
 /* smaller screens */
@@ -462,21 +555,16 @@ button:disabled {
     padding: 12px 14px;
   }
 
-  .search-form {
+  .search-form,
+  .range-buttons,
+  .memory-actions {
     flex-direction: column;
   }
 
   .search-input,
-  .search-select {
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .range-buttons {
-    flex-direction: column;
-  }
-
-  .range-buttons button {
+  .search-select,
+  .range-buttons button,
+  .memory-actions button {
     width: 100%;
   }
 
@@ -491,11 +579,18 @@ button:disabled {
     height: 56px;
   }
 
+  .track-list {
+    padding-left: 18px;
+  }
+
   .track-card {
-    grid-template-columns:
-      28px 48px minmax(0, 1fr);
+    grid-template-columns: 28px 48px minmax(0, 1fr);
     gap: 10px;
     padding: 12px;
+  }
+
+  .track-card::before {
+    left: -19px;
   }
 
   .track-card img {
@@ -512,11 +607,8 @@ button:disabled {
     grid-column: 1 / -1;
   }
 
-  .memory-actions {
+  .playlist-selection {
+    align-items: stretch;
     flex-direction: column;
-  }
-
-  .memory-actions button {
-    width: 100%;
   }
 }
