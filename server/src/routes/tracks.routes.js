@@ -1,22 +1,20 @@
-import { Router } from 'express';
+import { Router } from "express";
 
-import { requireSpotifyAuth } from '../middleware/requireSpotifyAuth.js';
-
+import { requireSpotifyAuth } from "../middleware/requireSpotifyAuth.js";
 import {
+  createSpotifyPlaylist,
   fetchRecentlyPlayed,
   fetchTopTracksAcrossRanges,
   searchSpotify,
-} from '../services/spotifyApi.service.js';
-
-import { asyncHandler } from '../utils/asyncHandler.js';
-
-import { logTracksByRange } from '../utils/logTracks.js';
+} from "../services/spotifyApi.service.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { logTracksByRange } from "../utils/logTracks.js";
 
 export const tracksRouter = Router();
 
 // get top tracks
 tracksRouter.get(
-  '/top-tracks',
+  "/top-tracks",
   requireSpotifyAuth,
   asyncHandler(async (req, res) => {
     let limit = Number(req.query.limit);
@@ -31,7 +29,7 @@ tracksRouter.get(
 
     const tracksByRange = await fetchTopTracksAcrossRanges(
       req.spotifyAccessToken,
-      limit
+      limit,
     );
 
     logTracksByRange(tracksByRange);
@@ -43,12 +41,12 @@ tracksRouter.get(
         limit: limit,
       },
     });
-  })
+  }),
 );
 
 // get recently played tracks
 tracksRouter.get(
-  '/recently-played',
+  "/recently-played",
   requireSpotifyAuth,
   asyncHandler(async (req, res) => {
     let limit = Number(req.query.limit);
@@ -63,7 +61,7 @@ tracksRouter.get(
 
     const tracks = await fetchRecentlyPlayed(
       req.spotifyAccessToken,
-      limit
+      limit,
     );
 
     res.json({
@@ -73,43 +71,100 @@ tracksRouter.get(
         limit: limit,
       },
     });
-  })
+  }),
 );
 
 // search spotify
 tracksRouter.get(
-  '/search',
+  "/search",
   requireSpotifyAuth,
   asyncHandler(async (req, res) => {
     const searchTerm = req.query.q;
     const searchType = req.query.type;
 
-    // check the search term
     if (!searchTerm || !searchTerm.trim()) {
       return res.status(400).json({
-        message: 'Please enter something to search.',
+        message: "Please enter something to search.",
       });
     }
 
-    // check the search type
     if (
-      searchType !== 'artist' &&
-      searchType !== 'album' &&
-      searchType !== 'track'
+      searchType !== "artist" &&
+      searchType !== "album" &&
+      searchType !== "track"
     ) {
       return res.status(400).json({
-        message: 'Please choose artist, album, or track.',
+        message: "Please choose artist, album, or track.",
       });
     }
 
     const results = await searchSpotify(
       req.spotifyAccessToken,
       searchTerm.trim(),
-      searchType
+      searchType,
     );
 
     res.json({
       data: results,
     });
-  })
+  }),
+);
+
+// create a spotify playlist
+tracksRouter.post(
+  "/playlists",
+  requireSpotifyAuth,
+  asyncHandler(async (req, res) => {
+    const name = req.body.name;
+    const description = req.body.description || "";
+    const isPublic = req.body.isPublic;
+    const trackIds = req.body.trackIds;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        message: "Please enter a playlist name.",
+      });
+    }
+
+    if (!Array.isArray(trackIds) || trackIds.length === 0) {
+      return res.status(400).json({
+        message: "Please select at least one track.",
+      });
+    }
+
+    if (trackIds.length > 100) {
+      return res.status(400).json({
+        message: "A playlist can contain up to 100 selected tracks.",
+      });
+    }
+
+    const uniqueTrackIds = [];
+
+    for (const trackId of trackIds) {
+      if (
+        typeof trackId === "string" &&
+        !uniqueTrackIds.includes(trackId)
+      ) {
+        uniqueTrackIds.push(trackId);
+      }
+    }
+
+    if (uniqueTrackIds.length === 0) {
+      return res.status(400).json({
+        message: "The selected tracks are not valid.",
+      });
+    }
+
+    const playlist = await createSpotifyPlaylist(
+      req.spotifyAccessToken,
+      name.trim(),
+      description.trim(),
+      isPublic !== false,
+      uniqueTrackIds,
+    );
+
+    res.status(201).json({
+      data: playlist,
+    });
+  }),
 );

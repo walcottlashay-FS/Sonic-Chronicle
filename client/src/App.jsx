@@ -4,6 +4,7 @@ import { Navigate, Route, Routes } from "react-router";
 import { getAuthStatus, loginUrl } from "./api.js";
 import AuthenticatedApp from "./AuthenticatedApp.jsx";
 import SearchPage from "./pages/SearchPage.jsx";
+import TrackStoryPage from "./pages/TrackStoryPage.jsx";
 
 import "./styles.css";
 
@@ -72,9 +73,7 @@ export default function App() {
   if (loading) {
     return (
       <main>
-        <p className="status">
-          Checking Spotify connection...
-        </p>
+        <p className="status">Checking Spotify connection...</p>
       </main>
     );
   }
@@ -115,6 +114,15 @@ export default function App() {
         element={
           <ProtectedRoute authenticated={authenticated}>
             <AuthenticatedApp initialPage="chronicle" />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/track/:trackId"
+        element={
+          <ProtectedRoute authenticated={authenticated}>
+            <TrackStoryPage />
           </ProtectedRoute>
         }
       />
